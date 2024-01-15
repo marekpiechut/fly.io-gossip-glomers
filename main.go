@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	maelstrom "github.com/jepsen-io/maelstrom/demo/go"
@@ -11,7 +10,7 @@ import (
 func main() {
 	node := maelstrom.NewNode()
 	idGenerator := NewSnowflakeIdGenerator(-1, -1)
-	broadcaster := NewBroadcaster()
+	broadcaster := NewBroadcaster(node)
 
 	node.Handle("echo", func(msg maelstrom.Message) error {
 		var body map[string]any
@@ -68,12 +67,21 @@ func main() {
 			return err
 		}
 
-		fmt.Printf("topology: %v\n", body.Topology)
+		broadcaster.topology.Update(body.Topology)
+
 		return node.Reply(msg, map[string]any{
 			"type": "topology_ok",
 		})
 	})
 
+	node.Handle("propagate", func(msg maelstrom.Message) error {
+		var body PropagateBody
+		if err := json.Unmarshal(msg.Body, &body); err != nil {
+			return err
+		}
+
+		return broadcaster.Add(body.Value)
+	})
 	if err := node.Run(); err != nil {
 		log.Fatal(err)
 	}
