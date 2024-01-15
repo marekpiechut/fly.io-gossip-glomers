@@ -1,17 +1,17 @@
 package main
 
 type Broadcaster struct {
-	store []float64
+	store []int
 }
 
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{}
 }
 
-func (b *Broadcaster) Add(value float64) error {
+func (b *Broadcaster) Add(value int) error {
 	b.store = append(b.store, value)
 	return nil
 }
-func (b *Broadcaster) Get() []float64 {
+func (b *Broadcaster) Get() []int {
 	return b.store
 }
